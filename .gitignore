@@ -1,0 +1,73 @@
+# ---------------------------------------------------------------------------
+# Terraform
+# ---------------------------------------------------------------------------
+.kiro/
+
+# Local .terraform directories (provider plugins, module cache)
+**/.terraform/*
+
+# Terraform state files — never commit state (may contain secrets)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Saved plan output artifacts (may reveal infrastructure detail / secrets)
+*.tfplan
+*.tfplan.*
+
+# CLI configuration / override files
+.terraformrc
+terraform.rc
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ---------------------------------------------------------------------------
+# Lock file policy
+# ---------------------------------------------------------------------------
+# The dependency lock file IS committed (Req 10.1) — a single shared root lock
+# guarantees dev and prod resolve identical provider versions/hashes.
+# The negation below keeps it tracked even though broad patterns might catch it.
+!.terraform.lock.hcl
+
+# ---------------------------------------------------------------------------
+# Secrets — keep sensitive values out of version control (Req 8.1, 8.4)
+# ---------------------------------------------------------------------------
+# Per-environment NON-secret tfvars (dev.tfvars / prod.tfvars) ARE committed.
+# Secret-bearing tfvars variants are ignored:
+*.secret.tfvars
+secret.tfvars
+secrets.tfvars
+*.secrets.tfvars
+
+# terraform.tfvars at the repo root is not used by this layout; ignore stray
+# root tfvars so a secret value is never committed by accident.
+/terraform.tfvars
+
+# Local AWS / cloud credential files
+.aws/
+credentials
+aws-credentials*
+*.pem
+*.pfx
+*.p12
+
+# Environment variable dumps that may hold TF_VAR_* secrets
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Editor / OS noise
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
