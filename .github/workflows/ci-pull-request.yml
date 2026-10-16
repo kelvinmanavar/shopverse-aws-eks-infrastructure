@@ -1,0 +1,169 @@
+name: CI - Pull Request
+
+# Validates every pull request targeting the default branch: formatting,
+# validation, and a dev plan whose add/change/destroy summary is posted as a
+# single, continuously-updated PR comment. No apply runs in this workflow
+# (Req 4.1-4.7).
+
+on:
+  pull_request:
+    branches: [main]
+
+# Least-privilege token permissions.
+permissions:
+  id-token: write # assume the dev deployment role via OIDC
+  contents: read # checkout
+  pull-requests: write # upsert the plan-summary comment
+
+env:
+  TF_VERSION: "1.16.1" # single pinned patch, identical to CD (Req 10.2)
+  TF_IN_AUTOMATION: "true"
+  AWS_REGION: ap-south-1
+  WORKDIR: environments/dev
+
+concurrency:
+  group: ci-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-plan:
+    name: fmt, validate, plan (dev)
+    runs-on: ubuntu-latest
+    # fmt + validate are expected within 10 min (Req 4.1) and the plan within
+    # 15 min (Req 4.2); this single job covers both, bounded to 15.
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      # ---- Format check (Req 4.1, 4.5) -----------------------------------
+      # Runs first and without AWS credentials, so a formatting diff fails fast
+      # and surfaces which files differ.
+      - name: Terraform fmt -check
+        id: fmt
+        run: terraform fmt -check -recursive
+
+      # ---- Validate all roots (Req 4.1, 4.5) -----------------------------
+      # init with -backend=false needs no state/credentials; the committed lock
+      # is enforced read-only so providers never upgrade (Req 10.3). Validating
+      # every root (not just dev) catches more on the PR gate.
+      - name: Terraform validate (all roots)
+        run: |
+          set -euo pipefail
+          for dir in environments/dev environments/prod bootstrap; do
+            echo "::group::validate $dir"
+            terraform -chdir="$dir" init -backend=false -lockfile=readonly -input=false -no-color
+            terraform -chdir="$dir" validate -no-color
+            echo "::endgroup::"
+          done
+
+      # ---- OIDC auth (keyless) for the dev plan --------------------------
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEV_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600 # <= 3600 (Req 7.1)
+
+      # ---- Init the dev root against remote state (Req 10.3) -------------
+      - name: Terraform init (dev)
+        working-directory: ${{ env.WORKDIR }}
+        run: terraform init -lockfile=readonly -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -input=false -no-color
+
+      # ---- Plan dev (Req 4.2, 4.6) ---------------------------------------
+      - name: Terraform plan (dev)
+        id: plan
+        working-directory: ${{ env.WORKDIR }}
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        run: |
+          set -o pipefail
+          terraform plan -input=false -lock-timeout=300s -no-color \
+            -var-file=dev.tfvars -out=tfplan 2>&1 | tee plan_output.txt
+
+      # ---- Extract add/change/destroy counts (Req 4.3) ------------------
+      # Counts match Terraform's own summary semantics: a replacement
+      # (actions ["delete","create"]) is counted as BOTH an add and a destroy,
+      # so an action list is "add" if it contains create, "destroy" if it
+      # contains delete, and "change" when it is exactly ["update"].
+      - name: Summarize plan
+        if: always() && steps.plan.outcome == 'success'
+        id: summary
+        working-directory: ${{ env.WORKDIR }}
+        run: |
+          set -euo pipefail
+          terraform show -json tfplan > plan.json
+          ADD=$(jq '[.resource_changes[]? | select(.change.actions | index("create"))] | length' plan.json)
+          CHG=$(jq '[.resource_changes[]? | select(.change.actions == ["update"])] | length' plan.json)
+          DEL=$(jq '[.resource_changes[]? | select(.change.actions | index("delete"))] | length' plan.json)
+          echo "add=$ADD"     >> "$GITHUB_OUTPUT"
+          echo "change=$CHG"  >> "$GITHUB_OUTPUT"
+          echo "destroy=$DEL" >> "$GITHUB_OUTPUT"
+
+      # ---- Upsert exactly one plan-summary comment (Req 4.4) ------------
+      - name: Upsert plan summary comment
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PLAN_OUTCOME: ${{ steps.plan.outcome }}
+          PLAN_ADD: ${{ steps.summary.outputs.add }}
+          PLAN_CHANGE: ${{ steps.summary.outputs.change }}
+          PLAN_DESTROY: ${{ steps.summary.outputs.destroy }}
+        with:
+          script: |
+            const marker = '<!-- tf-plan-summary:dev -->';
+            const sha = context.sha.substring(0, 7);
+            const planOk = process.env.PLAN_OUTCOME === 'success';
+            const add = process.env.PLAN_ADD || '0';
+            const change = process.env.PLAN_CHANGE || '0';
+            const destroy = process.env.PLAN_DESTROY || '0';
+
+            // Build the body line-by-line, left-aligned, so no stray leading
+            // whitespace turns the Markdown into a code block.
+            const body = planOk
+              ? [
+                  marker,
+                  '### Terraform Plan — dev',
+                  '',
+                  '| Action | Count |',
+                  '| ------ | ----- |',
+                  `| add | ${add} |`,
+                  `| change | ${change} |`,
+                  `| destroy | ${destroy} |`,
+                  '',
+                  `_Plan for \`environments/dev\` at ${sha}._`,
+                ].join('\n')
+              : [
+                  marker,
+                  '### Terraform Plan — dev (failed)',
+                  '',
+                  'The dev plan did not complete. See the workflow logs for details. No apply will run.',
+                  '',
+                  `_Commit ${sha}._`,
+                ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      # If the plan failed, fail the job AFTER the comment is posted so the PR
+      # check is red and no downstream apply can run (Req 4.6, 4.7).
+      - name: Fail if plan failed
+        if: always() && steps.plan.outcome == 'failure'
+        run: |
+          echo "::error::Terraform dev plan failed — see logs. No apply will run."
+          exit 1
