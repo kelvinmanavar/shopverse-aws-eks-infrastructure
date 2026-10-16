@@ -8,7 +8,16 @@
 # Trust policies
 # ---------------------------------------------------------------------------
 
-# Dev: any branch of the designated repo may assume the role (so PR plans run).
+# Repo pinning uses the IMMUTABLE claims (repository_owner_id + repository_id),
+# not the name-based `sub`, because this repository was created after
+# 2026-07-15 and therefore emits ID-based subject claims. These numeric IDs are
+# rename-proof and cannot be re-registered by another account.
+#
+# Branch/PR gating uses the `ref` claim; Dependabot runs (event_name = dynamic)
+# are explicitly denied so only real Actions workflows can assume the roles.
+
+# Dev: assumable from the designated repo on the default branch OR a pull
+# request (so PR plans run), never from Dependabot.
 data "aws_iam_policy_document" "dev_trust" {
   statement {
     effect  = "Allow"
@@ -25,15 +34,50 @@ data "aws_iam_policy_document" "dev_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
+    # Immutable repo pin.
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_host}:repository_owner_id"
+      values   = [var.github_owner_id]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_host}:repository_id"
+      values   = [var.github_repository_id]
+    }
+
+    # AWS requires `sub` (or job_workflow_ref) to be scoped. Match this repo's
+    # immutable subject prefix with a trailing wildcard; branch/PR gating is
+    # done by the `ref` conditions below.
     condition {
       test     = "StringLike"
       variable = "${local.oidc_host}:sub"
-      values   = ["${local.repo_sub}:*"]
+      values   = ["${local.immutable_sub_prefix}:*"]
+    }
+
+    # Allow the default branch (post-merge dev apply) or any pull request
+    # (PR plans). PR events carry ref = refs/pull/<n>/merge.
+    condition {
+      test     = "StringLike"
+      variable = "${local.oidc_host}:ref"
+      values = [
+        "refs/heads/${var.default_branch}",
+        "refs/pull/*/merge",
+      ]
+    }
+
+    # Deny Dependabot-origin tokens (event_name = dynamic).
+    condition {
+      test     = "StringNotEquals"
+      variable = "${local.oidc_host}:event_name"
+      values   = ["dynamic"]
     }
   }
 }
 
-# Prod: only runs from the designated repo AND the default branch may assume.
+# Prod: assumable only from the designated repo on the default branch, never
+# from Dependabot.
 data "aws_iam_policy_document" "prod_trust" {
   statement {
     effect  = "Allow"
@@ -50,10 +94,39 @@ data "aws_iam_policy_document" "prod_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
+    # Immutable repo pin.
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_host}:repository_owner_id"
+      values   = [var.github_owner_id]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_host}:repository_id"
+      values   = [var.github_repository_id]
+    }
+
+    # Exact immutable subject for the default branch. This both satisfies AWS's
+    # requirement to scope `sub` and pins prod to the default branch precisely.
     condition {
       test     = "StringEquals"
       variable = "${local.oidc_host}:sub"
-      values   = ["${local.repo_sub}:ref:refs/heads/${var.default_branch}"]
+      values   = ["${local.immutable_sub_prefix}:ref:refs/heads/${var.default_branch}"]
+    }
+
+    # Default branch only (redundant with the exact `sub` above, kept explicit).
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_host}:ref"
+      values   = ["refs/heads/${var.default_branch}"]
+    }
+
+    # Deny Dependabot-origin tokens (event_name = dynamic).
+    condition {
+      test     = "StringNotEquals"
+      variable = "${local.oidc_host}:event_name"
+      values   = ["dynamic"]
     }
   }
 }

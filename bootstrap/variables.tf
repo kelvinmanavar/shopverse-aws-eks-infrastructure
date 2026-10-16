@@ -27,7 +27,26 @@ variable "github_org" {
 }
 
 variable "github_repo" {
-  description = "GitHub repository name (without the org), e.g. 'aws-infra-shopverse'."
+  description = "GitHub repository name (without the org), e.g. 'shopverse-aws-eks-infrastructure'. Used only for documentation/tagging; trust pinning uses the immutable numeric IDs below."
+  type        = string
+}
+
+# Repositories created after 2026-07-15 (or opted into immutable subject claims)
+# emit an ID-based OIDC `sub` instead of the name-based form. Rather than depend
+# on the mutable, format-varying `sub`, the trust policies pin on these immutable
+# numeric claims (repository_owner_id + repository_id), which never change on
+# rename and cannot be re-registered by another account.
+#
+# Obtain them with the GitHub CLI:
+#   gh api users/kelvinmanavar --jq .id
+#   gh api repos/kelvinmanavar/shopverse-aws-eks-infrastructure --jq .id
+variable "github_owner_id" {
+  description = "Immutable numeric account ID of the GitHub org/user that owns the repo (OIDC claim repository_owner_id)."
+  type        = string
+}
+
+variable "github_repository_id" {
+  description = "Immutable numeric ID of the GitHub repository (OIDC claim repository_id)."
   type        = string
 }
 
