@@ -9,9 +9,16 @@ terraform {
     }
   }
 
-  # NOTE: no backend block. Bootstrap runs once with LOCAL state to create the
-  # state bucket, then its state is migrated into that bucket via
-  # `terraform init -migrate-state` (key: bootstrap/terraform.tfstate).
+  # Bootstrap first ran with LOCAL state to create this bucket, then its state
+  # was migrated here via `terraform init -migrate-state`. The deploy roles are
+  # scoped to dev/* and prod/* keys, so only admins can reach this key.
+  backend "s3" {
+    bucket       = "shopverse-tfstate-16102026"
+    key          = "bootstrap/terraform.tfstate"
+    region       = "ap-south-1"
+    encrypt      = true
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
