@@ -30,6 +30,7 @@ db_allocated_storage   = 30
 db_multi_az            = true
 db_backup_retention    = 30
 db_deletion_protection = true
+db_skip_final_snapshot = false
 
 # ECR — immutable tags in prod for traceable, reproducible deploys.
 ecr_repository_names           = ["shopverse-frontend", "shopverse-backend"]

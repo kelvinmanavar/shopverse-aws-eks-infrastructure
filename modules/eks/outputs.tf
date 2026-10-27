@@ -37,3 +37,8 @@ output "kms_key_arn" {
   description = "KMS key ARN encrypting Kubernetes secrets."
   value       = aws_kms_key.eks.arn
 }
+
+output "ebs_csi_role_arn" {
+  description = "IRSA role ARN bound to the EBS CSI driver service account. Null when enable_ebs_csi is false."
+  value       = local.ebs_csi_enabled ? aws_iam_role.ebs_csi[0].arn : null
+}

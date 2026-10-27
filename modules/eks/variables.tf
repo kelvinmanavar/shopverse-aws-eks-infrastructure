@@ -77,6 +77,18 @@ variable "enable_irsa" {
   default     = true
 }
 
+variable "enable_ebs_csi" {
+  description = "When true, install the AWS EBS CSI driver as a managed EKS add-on with a dedicated IRSA role so pods can provision/mount EBS-backed PersistentVolumes. Requires enable_irsa = true."
+  type        = bool
+  default     = true
+}
+
+variable "ebs_csi_addon_version" {
+  description = "Optional pinned version of the aws-ebs-csi-driver add-on (e.g. 'v1.35.0-eksbuild.1'). When null, EKS uses the default version for the cluster's Kubernetes version."
+  type        = string
+  default     = null
+}
+
 variable "bastion_instance_type" {
   description = "Instance type for the SSM-managed bastion host."
   type        = string

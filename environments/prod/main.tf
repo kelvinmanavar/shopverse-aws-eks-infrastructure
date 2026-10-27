@@ -57,6 +57,7 @@ module "database" {
   multi_az                = var.db_multi_az
   backup_retention_period = var.db_backup_retention
   deletion_protection     = var.db_deletion_protection
+  skip_final_snapshot     = var.db_skip_final_snapshot
   db_password             = var.db_password
 }
 

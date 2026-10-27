@@ -27,6 +27,7 @@ db_allocated_storage   = 20
 db_multi_az            = false
 db_backup_retention    = 7
 db_deletion_protection = false
+db_skip_final_snapshot = true
 
 # ECR — mutable tags for iteration in dev.
 ecr_repository_names           = ["shopverse-frontend", "shopverse-backend"]

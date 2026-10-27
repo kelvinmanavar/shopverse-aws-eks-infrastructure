@@ -69,6 +69,12 @@ resource "aws_kms_alias" "db" {
 # RDS instance
 # ---------------------------------------------------------------------------
 
+# Unique suffix for the final-snapshot name so destroy/re-create never collides
+# with a previously-retained snapshot of the same name.
+resource "random_id" "snapshot_suffix" {
+  byte_length = 4
+}
+
 resource "aws_db_instance" "mysql" {
   identifier     = "${var.name_prefix}-mysql"
   engine         = "mysql"
@@ -97,9 +103,12 @@ resource "aws_db_instance" "mysql" {
   backup_retention_period = var.backup_retention_period
   deletion_protection     = var.deletion_protection
 
-  # Take a final snapshot on destroy for prod-like safety.
-  skip_final_snapshot       = false
-  final_snapshot_identifier = "${var.name_prefix}-mysql-final"
+  # Final-snapshot handling. When skip_final_snapshot is false, give the
+  # snapshot a unique name (random suffix) so a later destroy/re-create never
+  # collides with a snapshot left behind by a previous instance. When true
+  # (typical for dev), no final snapshot is taken and no name is set.
+  skip_final_snapshot       = var.skip_final_snapshot
+  final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.name_prefix}-mysql-final-${random_id.snapshot_suffix.hex}"
 
   tags = merge(var.tags, { Name = "${var.name_prefix}-mysql" })
 }

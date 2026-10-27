@@ -54,6 +54,12 @@ variable "deletion_protection" {
   default     = false
 }
 
+variable "skip_final_snapshot" {
+  description = "When true, no final snapshot is taken on destroy (fast teardown, typical for dev). When false, a uniquely-named final snapshot is taken (recommended for prod)."
+  type        = bool
+  default     = false
+}
+
 variable "db_name" {
   description = "Initial database name created on the instance."
   type        = string
