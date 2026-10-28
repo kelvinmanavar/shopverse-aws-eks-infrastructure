@@ -89,6 +89,18 @@ variable "ebs_csi_addon_version" {
   default     = null
 }
 
+variable "enable_lb_controller" {
+  description = "When true, create the IRSA role and IAM policy for the AWS Load Balancer Controller so it can provision ALBs/NLBs (incl. Gateway API). The controller itself is installed via Helm/kubectl, not Terraform. Requires enable_irsa = true."
+  type        = bool
+  default     = true
+}
+
+variable "lb_controller_service_account" {
+  description = "Kubernetes service account name the AWS Load Balancer Controller runs as (in kube-system). Must match the Helm install."
+  type        = string
+  default     = "aws-load-balancer-controller"
+}
+
 variable "bastion_instance_type" {
   description = "Instance type for the SSM-managed bastion host."
   type        = string
