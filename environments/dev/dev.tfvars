@@ -25,7 +25,7 @@ db_engine_version      = "8.4.11"
 db_instance_class      = "db.t3.micro"
 db_allocated_storage   = 20
 db_multi_az            = false
-db_backup_retention    = 7
+db_backup_retention    = 1
 db_deletion_protection = false
 db_skip_final_snapshot = true
 
