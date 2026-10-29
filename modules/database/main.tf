@@ -41,6 +41,21 @@ resource "aws_vpc_security_group_ingress_rule" "mysql_from_nodes" {
   referenced_security_group_id = var.node_security_group_id
 }
 
+# Optional: allow 3306 from the SSM bastion so operators can reach the private
+# DB via Session Manager port-forwarding (ad-hoc access, mysqldump backups).
+# Created only when bastion_security_group_id is provided. The DB stays private
+# — this references the bastion SG, it does not open any CIDR or public access.
+resource "aws_vpc_security_group_ingress_rule" "mysql_from_bastion" {
+  count = var.bastion_security_group_id != null ? 1 : 0
+
+  security_group_id            = aws_security_group.db.id
+  description                  = "MySQL from SSM bastion (operator access / backups)"
+  from_port                    = 3306
+  to_port                      = 3306
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = var.bastion_security_group_id
+}
+
 resource "aws_vpc_security_group_egress_rule" "all_out" {
   security_group_id = aws_security_group.db.id
   description       = "Allow all outbound"

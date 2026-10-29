@@ -14,8 +14,14 @@ variable "private_subnet_ids" {
 }
 
 variable "node_security_group_id" {
-  description = "EKS node security group id (from the eks module). The ONLY source permitted 3306 ingress to the database."
+  description = "EKS node security group id (from the eks module). The primary source permitted 3306 ingress to the database."
   type        = string
+}
+
+variable "bastion_security_group_id" {
+  description = "Optional SSM bastion security group id (from the eks module). When set, 3306 ingress is also allowed from the bastion so operators can reach the DB via SSM Session Manager port-forwarding for ad-hoc access and logical (mysqldump) backups. When null, no bastion rule is created."
+  type        = string
+  default     = null
 }
 
 variable "engine_version" {

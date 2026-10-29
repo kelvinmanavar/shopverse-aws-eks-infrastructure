@@ -46,10 +46,11 @@ module "eks" {
 module "database" {
   source = "../../modules/database"
 
-  name_prefix            = module.tagging.name_prefix_resolved
-  tags                   = module.tagging.tags
-  private_subnet_ids     = module.vpc.private_subnet_ids
-  node_security_group_id = module.eks.node_security_group_id
+  name_prefix               = module.tagging.name_prefix_resolved
+  tags                      = module.tagging.tags
+  private_subnet_ids        = module.vpc.private_subnet_ids
+  node_security_group_id    = module.eks.node_security_group_id
+  bastion_security_group_id = module.eks.bastion_security_group_id
 
   engine_version          = var.db_engine_version
   instance_class          = var.db_instance_class
