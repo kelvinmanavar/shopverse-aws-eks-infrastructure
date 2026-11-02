@@ -148,6 +148,8 @@ locals {
     "kms:Describe*",
     "kms:List*",
     "logs:Describe*",
+    "ssm:GetParameter",
+    "ssm:GetParameters",
     "s3:ListAllMyBuckets",
     "s3:GetBucketLocation",
   ]

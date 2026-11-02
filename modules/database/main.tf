@@ -42,7 +42,10 @@ resource "aws_vpc_security_group_ingress_rule" "mysql_from_nodes" {
 
 # allow 3306 from the SSM bastion so operators can reach the private DB (ad-hoc access, mysqldump backups).
 resource "aws_vpc_security_group_ingress_rule" "mysql_from_bastion" {
-  count = var.bastion_security_group_id != null ? 1 : 0
+  # Gate on a plan-time bool, NOT on bastion_security_group_id: that id comes
+  # from aws_security_group.bastion in the eks module and is unknown until
+  # apply, which makes it illegal to use in a count expression.
+  count = var.enable_bastion_access ? 1 : 0
 
   security_group_id            = aws_security_group.db.id
   description                  = "MySQL from SSM bastion (operator access / backups)"
