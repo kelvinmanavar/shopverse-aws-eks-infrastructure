@@ -1,7 +1,7 @@
 # Prod environment values (non-secret only). Secrets such as the DB password
 # are injected via TF_VAR_* from a secrets store, never stored here
-# (Req 8.1, 8.4). This file is independent of dev.tfvars — no shared variable
-# file feeds both environments (Req 3.2).
+# This file is independent of dev.tfvars — no shared variable
+# file feeds both environments.
 
 environment = "prod"
 owner       = "platform-team"

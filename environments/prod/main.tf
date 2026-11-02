@@ -1,5 +1,5 @@
 # Prod environment composition. This root module contains ONLY module calls —
-# no bare resource blocks (Req 1.3). Dependency order:
+# no bare resource blocks. Dependency order:
 #
 #   tagging ─▶ vpc ─┬─▶ eks ──┬─▶ ecr   (eks.node_role_name)
 #                   │         │

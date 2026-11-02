@@ -6,8 +6,6 @@ name: CD - Deploy
 #                 time in order (Req 5.1-5.5).
 #   deploy-prod : plan prod, pause on the `prod` GitHub Environment required-
 #                 reviewer gate, then apply the EXACT saved plan on approval
-#                 (Req 6.1-6.3, 6.5, 6.8).
-#
 # The prod approval, 72-hour timeout, rejection, and unauthorized-approver
 # handling are enforced by the `prod` GitHub Environment protection rules
 # (configured in repo settings), not in YAML.
@@ -26,7 +24,7 @@ permissions:
   contents: read
 
 env:
-  TF_VERSION: "1.16.1" # single pinned patch, identical to CI (Req 10.2)
+  TF_VERSION: "1.16.1" 
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ap-south-1
 
@@ -40,7 +38,7 @@ jobs:
     environment: dev
     timeout-minutes: 45
     # Serialize dev deployments: queued runs execute one at a time in merge
-    # order; never cancel an in-flight apply (Req 5.5).
+    # order; never cancel an in-flight apply 
     concurrency:
       group: deploy-dev
       cancel-in-progress: false
@@ -68,14 +66,13 @@ jobs:
         run: terraform init -lockfile=readonly -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -input=false -no-color
 
       # Plan first; a plan failure fails the run and the apply step is skipped
-      # (Req 5.4).
       - name: Terraform plan (dev)
         env:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         run: terraform plan -input=false -lock-timeout=300s -no-color -var-file=dev.tfvars -out=tfplan
 
       # Apply the exact saved plan. On failure the run is marked failed and
-      # already-applied resources remain; the next run reconciles (Req 5.2, 5.3).
+      # already-applied resources remain; the next run reconciles.
       - name: Terraform apply (dev)
         env:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
@@ -119,8 +116,6 @@ jobs:
       - name: Terraform init (prod)
         run: terraform init -lockfile=readonly -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -input=false -no-color
 
-      # Produce the saved plan that will be applied verbatim after approval
-      # (Req 6.1, 6.5).
       - name: Terraform plan (prod)
         env:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
@@ -136,7 +131,7 @@ jobs:
           if-no-files-found: error
 
       # Apply the EXACT saved plan. On failure the run is marked failed and the
-      # deployment halts with no automatic retry (Req 6.8).
+      # deployment halts with no automatic retry.
       - name: Terraform apply (prod)
         env:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}

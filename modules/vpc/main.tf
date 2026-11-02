@@ -8,7 +8,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   # Use explicit AZ names when provided, otherwise derive the first az_count
-  # zones from the region. Deterministic for a given region/input (Req 9.5).
+  # zones from the region. Deterministic for a given region/input.
   azs = length(var.azs) > 0 ? slice(var.azs, 0, var.az_count) : slice(data.aws_availability_zones.available.names, 0, var.az_count)
 
   # Deterministic per-AZ subnet CIDRs carved from the VPC CIDR. Public subnets

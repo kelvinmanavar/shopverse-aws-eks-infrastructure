@@ -1,5 +1,5 @@
 # Dev environment values (non-secret only). Secrets such as the DB password are
-# injected via TF_VAR_* from a secrets store, never stored here (Req 8.1, 8.4).
+# injected via TF_VAR_* from a secrets store, never stored here.
 
 environment = "dev"
 owner       = "platform-team"

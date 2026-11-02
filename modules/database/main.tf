@@ -26,8 +26,7 @@ resource "aws_security_group" "db" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-db-sg" })
 }
 
-# Derive the VPC id from the first private subnet so the module needs no extra
-# vpc_id input.
+# Derive the VPC id from the first private subnet so the module needs no extra vpc_id input.
 data "aws_subnet" "first" {
   id = var.private_subnet_ids[0]
 }
@@ -41,10 +40,7 @@ resource "aws_vpc_security_group_ingress_rule" "mysql_from_nodes" {
   referenced_security_group_id = var.node_security_group_id
 }
 
-# Optional: allow 3306 from the SSM bastion so operators can reach the private
-# DB via Session Manager port-forwarding (ad-hoc access, mysqldump backups).
-# Created only when bastion_security_group_id is provided. The DB stays private
-# — this references the bastion SG, it does not open any CIDR or public access.
+# allow 3306 from the SSM bastion so operators can reach the private DB (ad-hoc access, mysqldump backups).
 resource "aws_vpc_security_group_ingress_rule" "mysql_from_bastion" {
   count = var.bastion_security_group_id != null ? 1 : 0
 
@@ -104,7 +100,7 @@ resource "aws_db_instance" "mysql" {
   db_name  = var.db_name
   username = var.master_username
 
-  # Password handling (Req 8.1/8.3): prefer RDS-managed Secrets Manager secret
+  # Password handling: prefer RDS-managed Secrets Manager secret
   # so no plaintext password lives in state or tfvars. When disabled, the
   # password is injected via TF_VAR_db_password instead.
   manage_master_user_password = var.manage_master_user_password ? true : null

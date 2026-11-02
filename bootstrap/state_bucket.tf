@@ -1,14 +1,10 @@
-# Shared Terraform remote-state S3 bucket for all environments. Versioning +
-# SSE + public-access-block + TLS-only bucket policy (Req 2.1, 2.4, 2.5).
-# Native S3 locking (use_lockfile) needs only the bucket — no DynamoDB table.
-
 resource "aws_s3_bucket" "state" {
   bucket = var.state_bucket_name
 
   tags = { Name = var.state_bucket_name }
 }
 
-# Retain every prior version of the state object (Req 2.5).
+# Retain every prior version of the state object 
 resource "aws_s3_bucket_versioning" "state" {
   bucket = aws_s3_bucket.state.id
 
@@ -17,7 +13,7 @@ resource "aws_s3_bucket_versioning" "state" {
   }
 }
 
-# Server-side encryption for state at rest (Req 2.4).
+# Server-side encryption for state at rest 
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
   bucket = aws_s3_bucket.state.id
 

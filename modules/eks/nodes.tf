@@ -1,6 +1,3 @@
-# EC2 managed node group: node IAM role, node security group, and the node
-# group itself in the private subnets.
-
 # ---------------------------------------------------------------------------
 # Node IAM role
 # ---------------------------------------------------------------------------
@@ -43,11 +40,6 @@ resource "aws_iam_role_policy_attachment" "node_ecr_readonly" {
 # ---------------------------------------------------------------------------
 # Node security group
 # ---------------------------------------------------------------------------
-# This SG is consumed by modules/database for its sole 3306 ingress source.
-# Node-to-node and control-plane traffic also flows via the EKS-managed
-# cluster security group; this SG exists so downstream modules have a stable
-# node SG id to reference.
-
 resource "aws_security_group" "node" {
   name        = "${var.name_prefix}-eks-node-sg"
   description = "EKS worker node security group"

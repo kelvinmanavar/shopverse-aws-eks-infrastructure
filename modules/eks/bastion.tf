@@ -1,6 +1,3 @@
-# SSM-managed bastion: an EC2 instance in a public subnet reachable ONLY
-# through AWS Systems Manager Session Manager. No key pair, no inbound SSH.
-# Operators and CI use it to reach the private-only EKS API endpoint.
 
 # Latest Amazon Linux 2023 AMI (x86_64) via the AWS-published SSM parameter.
 data "aws_ssm_parameter" "al2023" {
