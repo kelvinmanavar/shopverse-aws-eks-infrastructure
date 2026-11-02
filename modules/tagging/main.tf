@@ -1,9 +1,9 @@
 locals {
   standard_tags = {
-    "environment" = var.environment 
-    "managed-by"  = "terraform"     
-    "owner"       = var.owner       
-    "cost-center" = var.cost_center 
+    "environment" = var.environment
+    "managed-by"  = "terraform"
+    "owner"       = var.owner
+    "cost-center" = var.cost_center
   }
 
   # extra_tags are merged FIRST so the standard tags always win on key
