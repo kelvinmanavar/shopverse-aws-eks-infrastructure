@@ -1,0 +1,29 @@
+# .trivyignore — accepted IaC misconfiguration findings for shopverse infra.
+#
+# Each entry is a CONSCIOUS risk acceptance with a rationale and an expiry
+# date so it gets re-reviewed rather than living forever silently. Trivy
+# suppresses by rule ID across every root module, so dev and prod are both
+# covered by a single entry.
+#
+# NOT ignored on purpose (treat as real signal, fix rather than accept):
+#   AWS-0031  ECR image tags mutable        -> prefer image_tag_mutability = IMMUTABLE
+
+# AWS-0104: security group rule allows unrestricted egress (0.0.0.0/0).
+# Accepted for the db, EKS node, and SSM bastion security groups: outbound-all
+# is required — nodes pull container images and reach the EKS API & SSM
+# endpoints, and the bastion is egress-only by design with no ingress. This is
+# egress (not ingress), so the blast radius is limited.
+AWS-0104 exp:2027-05-01
+
+# AWS-0164: subnet associates a public IP (map_public_ip_on_launch = true).
+# Accepted: these subnets are tagged kubernetes.io/role/elb=1 for
+# internet-facing load balancers and must assign public IPs to function.
+AWS-0164 exp:2027-05-01
+
+# AWS-0132: S3 bucket does not encrypt with a customer-managed key (CMK).
+# Accepted for the Terraform state bucket: SSE is enabled with the AWS-managed
+# aws:kms key (SSE-KMS) plus bucket_key_enabled, and the bucket already blocks
+# all public access. The AWS-managed key is accepted here over a CMK to avoid
+# the bootstrap chicken-and-egg of managing a KMS key/policy for the very
+# bucket that stores Terraform state.
+AWS-0132 exp:2027-05-01
