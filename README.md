@@ -22,7 +22,7 @@ Repository: <https://github.com/kelvinmanavar/shopverse-aws-eks-infrastructure>
 
 - **VPC** across 2 AZs — 2 public + 2 private subnets, NAT (single in dev, one
   per AZ in prod), and VPC flow logs to CloudWatch.
-- **EKS** — Kubernetes `1.34`, private-only API endpoint, managed node group
+- **EKS** — Kubernetes `1.35`, private-only API endpoint, managed node group
   (dev `t3.small`, prod `t3.medium`), IRSA, KMS secret encryption, and an
   SSM-managed bastion (no public SSH) for reaching the private API.
 - **RDS for MySQL** `8.4.11` — private subnets, KMS-encrypted, 3306 ingress only

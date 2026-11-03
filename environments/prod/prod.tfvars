@@ -16,7 +16,7 @@ single_nat_gateway = false
 enable_flow_logs   = true
 
 # EKS — production-grade nodes and scale.
-eks_cluster_version = "1.34"
+eks_cluster_version = "1.35"
 node_instance_types = ["t3.medium"]
 node_desired_size   = 3
 node_min_size       = 3

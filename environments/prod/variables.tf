@@ -82,7 +82,7 @@ variable "enable_flow_logs" {
 variable "eks_cluster_version" {
   description = "EKS Kubernetes version."
   type        = string
-  default     = "1.34"
+  default     = "1.35"
 }
 
 variable "node_instance_types" {

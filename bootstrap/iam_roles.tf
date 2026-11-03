@@ -168,7 +168,11 @@ locals {
     "kms:DeleteAlias",
     "kms:ScheduleKeyDeletion",
     "kms:TagResource",
+    "kms:GetKeyPolicy",
+    "kms:UntagResource",
     "kms:EnableKeyRotation",
+    "kms:DisableKeyRotation",
+    "kms:GetKeyRotationStatus",
     "kms:PutKeyPolicy",
     "secretsmanager:*",
     "iam:CreateRole",
@@ -177,14 +181,22 @@ locals {
     "iam:DetachRolePolicy",
     "iam:PutRolePolicy",
     "iam:DeleteRolePolicy",
+    "iam:CreatePolicy",
+    "iam:DeletePolicy",
+    "iam:CreatePolicyVersion",
+    "iam:DeletePolicyVersion",
     "iam:CreateInstanceProfile",
     "iam:DeleteInstanceProfile",
     "iam:AddRoleToInstanceProfile",
     "iam:RemoveRoleFromInstanceProfile",
+    "iam:TagInstanceProfile",
+    "iam:UntagInstanceProfile",
     "iam:PassRole",
     "iam:CreateOpenIDConnectProvider",
     "iam:TagRole",
+    "iam:UntagRole",
     "iam:TagPolicy",
+    "iam:UntagPolicy",
   ]
 }
 
@@ -202,12 +214,6 @@ data "aws_iam_policy_document" "dev_deploy" {
     actions   = local.mutating_actions
     resources = ["*"]
 
-    # Scope mutating IAM/name-bearing actions to dev-named resources.
-    condition {
-      test     = "StringLike"
-      variable = "aws:ResourceTag/environment"
-      values   = ["dev"]
-    }
   }
 
   # Remote state: this role may read/write ONLY the dev state key.
@@ -244,11 +250,6 @@ data "aws_iam_policy_document" "prod_deploy" {
     actions   = local.mutating_actions
     resources = ["*"]
 
-    condition {
-      test     = "StringLike"
-      variable = "aws:ResourceTag/environment"
-      values   = ["prod"]
-    }
   }
 
   statement {

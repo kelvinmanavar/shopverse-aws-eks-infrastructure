@@ -2,7 +2,7 @@
 
 Provisions the EKS control plane and everything tightly coupled to it:
 
-- **Cluster** (`cluster.tf`) — Kubernetes `1.34`, private-only API endpoint,
+- **Cluster** (`cluster.tf`) — Kubernetes `1.35`, private-only API endpoint,
   control-plane logging, KMS envelope encryption of secrets, cluster IAM role
   (with `AmazonEKSClusterPolicy` + `AmazonEKSVPCResourceController`).
 - **Managed node group** (`nodes.tf`) — EC2 nodes in the private subnets, node

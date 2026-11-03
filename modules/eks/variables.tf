@@ -26,7 +26,7 @@ variable "public_subnet_ids" {
 variable "cluster_version" {
   description = "EKS Kubernetes control-plane version."
   type        = string
-  default     = "1.34"
+  default     = "1.35"
 }
 
 variable "endpoint_public_access" {
