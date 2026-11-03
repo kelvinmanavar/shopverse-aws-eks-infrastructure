@@ -168,6 +168,7 @@ locals {
     "kms:DeleteAlias",
     "kms:ScheduleKeyDeletion",
     "kms:TagResource",
+    "kms:GetKeyPolicy",
     "kms:UntagResource",
     "kms:EnableKeyRotation",
     "kms:DisableKeyRotation",
