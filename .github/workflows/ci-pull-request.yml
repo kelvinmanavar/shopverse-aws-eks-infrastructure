@@ -87,7 +87,7 @@ jobs:
           exit-code: "0" # report-only; set to "1" to enforce
           severity: HIGH,CRITICAL
 
-      # Gate 2 — secret detection in the working tree (Req 8.5).
+      # Gate 2 — secret detection in the working tree.
       # REPORT-ONLY for now (exit-code 0). To ENFORCE, change exit-code to "1".
       # A leaked secret is high-impact, so this is a strong candidate to enforce
       # (exit-code "1") as soon as the baseline is confirmed clean.

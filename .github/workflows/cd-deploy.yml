@@ -3,7 +3,7 @@ name: CD - Deploy
 # Continuous deployment on merge to the default branch.
 #
 #   deploy-dev  : auto plan + apply to dev, serialized so merges apply one at a
-#                 time in order (Req 5.1-5.5).
+#                 time.
 #   deploy-prod : plan prod, pause on the `prod` GitHub Environment required-
 #                 reviewer gate, then apply the EXACT saved plan on approval
 # The prod approval, 72-hour timeout, rejection, and unauthorized-approver
