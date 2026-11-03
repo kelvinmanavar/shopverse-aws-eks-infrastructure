@@ -1,23 +1,3 @@
-# Exactly two deployment roles (Req 7.4): one for dev, one for prod, each with
-# a distinct identity. Trust is restricted to the single designated repository
-# via the OIDC `sub` claim; the prod role is additionally restricted to the
-# default branch (Req 7.5, 7.6). Max session duration 3600s (Req 7.1). Each
-# role's permission policy is scoped to its own environment only (Req 7.3, 3.3).
-
-# ---------------------------------------------------------------------------
-# Trust policies
-# ---------------------------------------------------------------------------
-
-# Repo pinning uses the IMMUTABLE claims (repository_owner_id + repository_id),
-# not the name-based `sub`, because this repository was created after
-# 2026-07-15 and therefore emits ID-based subject claims. These numeric IDs are
-# rename-proof and cannot be re-registered by another account.
-#
-# Branch/PR gating uses the `ref` claim; Dependabot runs (event_name = dynamic)
-# are explicitly denied so only real Actions workflows can assume the roles.
-
-# Dev: assumable from the designated repo on the default branch OR a pull
-# request (so PR plans run), never from Dependabot.
 data "aws_iam_policy_document" "dev_trust" {
   statement {
     effect  = "Allow"
@@ -34,7 +14,6 @@ data "aws_iam_policy_document" "dev_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Immutable repo pin.
     condition {
       test     = "StringEquals"
       variable = "${local.oidc_host}:repository_owner_id"
@@ -47,17 +26,12 @@ data "aws_iam_policy_document" "dev_trust" {
       values   = [var.github_repository_id]
     }
 
-    # AWS requires `sub` (or job_workflow_ref) to be scoped. Match this repo's
-    # immutable subject prefix with a trailing wildcard; branch/PR gating is
-    # done by the `ref` conditions below.
     condition {
       test     = "StringLike"
       variable = "${local.oidc_host}:sub"
       values   = ["${local.immutable_sub_prefix}:*"]
     }
 
-    # Allow the default branch (post-merge dev apply) or any pull request
-    # (PR plans). PR events carry ref = refs/pull/<n>/merge.
     condition {
       test     = "StringLike"
       variable = "${local.oidc_host}:ref"
@@ -157,7 +131,7 @@ resource "aws_iam_role" "prod_deploy" {
 # These grant the broad service actions needed to manage each environment's
 # VPC/EKS/RDS/ECR stack, but constrain the mutating, nameable resources to the
 # environment's own name prefix and its own remote-state key. This enforces
-# that the dev role cannot manage prod resources and vice versa (Req 7.3, 3.3).
+# that the dev role cannot manage prod resources and vice versa.
 
 locals {
   # Services whose describe/list/read actions cannot be ARN-scoped in IAM.
@@ -174,6 +148,8 @@ locals {
     "kms:Describe*",
     "kms:List*",
     "logs:Describe*",
+    "ssm:GetParameter",
+    "ssm:GetParameters",
     "s3:ListAllMyBuckets",
     "s3:GetBucketLocation",
   ]

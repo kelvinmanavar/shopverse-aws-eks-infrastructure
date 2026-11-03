@@ -88,5 +88,5 @@ terraform -chdir=environments/dev  init -backend=false -lockfile=readonly && \
 terraform -chdir=environments/dev  validate
 ```
 
-Authentication to AWS is keyless via GitHub OIDC — there are no long-lived AWS
-access keys anywhere in this repository.
+Notw: **Authentication to AWS is keyless via GitHub OIDC — there are no long-lived AWS
+access keys anywhere in this repository.**

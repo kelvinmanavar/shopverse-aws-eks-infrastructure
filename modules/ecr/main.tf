@@ -1,10 +1,3 @@
-# Amazon ECR container registries, one repository per entry in
-# repository_names, each named "<name_prefix>-<logical name>" so repositories
-# are environment-keyed and distinct across dev/prod (Req 3.5, 9.5).
-# KMS-encrypted, scan-on-push, per-env tag mutability, with a lifecycle policy
-# that expires old/untagged images. Optionally grants the EKS node role pull
-# access.
-
 locals {
   # Map of logical name -> full repository name, used to drive for_each so each
   # repository has a stable address keyed by its logical name.

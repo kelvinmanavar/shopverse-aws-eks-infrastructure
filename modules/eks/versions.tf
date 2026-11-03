@@ -1,5 +1,5 @@
 terraform {
-  # Bounded on both ends (Req 1.4, 1.7).
+  # Bounded on both ends.
   required_version = ">= 1.16.0, < 2.0.0"
 
   required_providers {

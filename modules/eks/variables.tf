@@ -77,6 +77,30 @@ variable "enable_irsa" {
   default     = true
 }
 
+variable "enable_ebs_csi" {
+  description = "When true, install the AWS EBS CSI driver as a managed EKS add-on with a dedicated IRSA role so pods can provision/mount EBS-backed PersistentVolumes. Requires enable_irsa = true."
+  type        = bool
+  default     = true
+}
+
+variable "ebs_csi_addon_version" {
+  description = "Optional pinned version of the aws-ebs-csi-driver add-on (e.g. 'v1.35.0-eksbuild.1'). When null, EKS uses the default version for the cluster's Kubernetes version."
+  type        = string
+  default     = null
+}
+
+variable "enable_lb_controller" {
+  description = "When true, create the IRSA role and IAM policy for the AWS Load Balancer Controller so it can provision ALBs/NLBs (incl. Gateway API). The controller itself is installed via Helm/kubectl, not Terraform. Requires enable_irsa = true."
+  type        = bool
+  default     = true
+}
+
+variable "lb_controller_service_account" {
+  description = "Kubernetes service account name the AWS Load Balancer Controller runs as (in kube-system). Must match the Helm install."
+  type        = string
+  default     = "aws-load-balancer-controller"
+}
+
 variable "bastion_instance_type" {
   description = "Instance type for the SSM-managed bastion host."
   type        = string

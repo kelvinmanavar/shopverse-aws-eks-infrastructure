@@ -149,6 +149,12 @@ variable "db_deletion_protection" {
   default     = false
 }
 
+variable "db_skip_final_snapshot" {
+  description = "Skip the RDS final snapshot on destroy (dev: true for fast teardown)."
+  type        = bool
+  default     = true
+}
+
 variable "db_password" {
   description = "RDS master password, injected via TF_VAR_db_password from a secrets store; NEVER set in tfvars. Only used when manage_master_user_password is false."
   type        = string
@@ -169,7 +175,7 @@ variable "ecr_repository_names" {
 variable "ecr_image_tag_mutability" {
   description = "ECR tag mutability (dev: MUTABLE)."
   type        = string
-  default     = "MUTABLE"
+  default     = "IMMUTABLE"
 }
 
 variable "ecr_scan_on_push" {

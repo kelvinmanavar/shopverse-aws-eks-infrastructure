@@ -14,8 +14,20 @@ variable "private_subnet_ids" {
 }
 
 variable "node_security_group_id" {
-  description = "EKS node security group id (from the eks module). The ONLY source permitted 3306 ingress to the database."
+  description = "EKS node security group id (from the eks module). The primary source permitted 3306 ingress to the database."
   type        = string
+}
+
+variable "bastion_security_group_id" {
+  description = "Optional SSM bastion security group id (from the eks module). When the bastion rule is enabled, 3306 ingress is also allowed from this SG so operators can reach the DB via SSM Session Manager port-forwarding for ad-hoc access and logical (mysqldump) backups."
+  type        = string
+  default     = null
+}
+
+variable "enable_bastion_access" {
+  description = "Create the 3306-from-bastion ingress rule. Must be known at plan time (it gates count), so it is a plain bool rather than being derived from the bastion SG id, which is only known at apply."
+  type        = bool
+  default     = true
 }
 
 variable "engine_version" {
@@ -50,6 +62,12 @@ variable "backup_retention_period" {
 
 variable "deletion_protection" {
   description = "Guard the instance against accidental deletion."
+  type        = bool
+  default     = false
+}
+
+variable "skip_final_snapshot" {
+  description = "When true, no final snapshot is taken on destroy (fast teardown, typical for dev). When false, a uniquely-named final snapshot is taken (recommended for prod)."
   type        = bool
   default     = false
 }

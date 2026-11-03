@@ -33,7 +33,22 @@ output "bastion_instance_id" {
   value       = aws_instance.bastion.id
 }
 
+output "bastion_security_group_id" {
+  description = "Bastion security group id — consumed by modules/database to allow 3306 ingress for SSM port-forward DB access/backups."
+  value       = aws_security_group.bastion.id
+}
+
 output "kms_key_arn" {
   description = "KMS key ARN encrypting Kubernetes secrets."
   value       = aws_kms_key.eks.arn
+}
+
+output "ebs_csi_role_arn" {
+  description = "IRSA role ARN bound to the EBS CSI driver service account. Null when enable_ebs_csi is false."
+  value       = local.ebs_csi_enabled ? aws_iam_role.ebs_csi[0].arn : null
+}
+
+output "lb_controller_role_arn" {
+  description = "IRSA role ARN for the AWS Load Balancer Controller service account. Annotate the controller's Helm service account with this ARN. Null when enable_lb_controller is false."
+  value       = local.lb_controller_enabled ? aws_iam_role.lb_controller[0].arn : null
 }

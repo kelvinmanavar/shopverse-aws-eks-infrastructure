@@ -31,6 +31,14 @@ resource "aws_iam_role_policy_attachment" "cluster_eks_policy" {
   role       = aws_iam_role.cluster.name
 }
 
+# Lets the control plane manage VPC resources it owns — security groups for
+# pods (SecurityGroupPolicy) and branch ENIs for Windows networking. AWS
+# recommends attaching this to the cluster role alongside AmazonEKSClusterPolicy.
+resource "aws_iam_role_policy_attachment" "cluster_vpc_resource_controller" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role       = aws_iam_role.cluster.name
+}
+
 # ---------------------------------------------------------------------------
 # KMS key for envelope encryption of Kubernetes secrets
 # ---------------------------------------------------------------------------
@@ -94,6 +102,7 @@ resource "aws_eks_cluster" "cluster" {
   # cluster is torn down before its role (so EKS can clean up managed ENIs/SGs).
   depends_on = [
     aws_iam_role_policy_attachment.cluster_eks_policy,
+    aws_iam_role_policy_attachment.cluster_vpc_resource_controller,
     aws_cloudwatch_log_group.cluster,
   ]
 }

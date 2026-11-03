@@ -10,6 +10,8 @@
 *.tfstate
 *.tfstate.*
 *.tfstate.backup
+environments/dev/tfplan
+environments/prod/tfplan
 
 # Crash log files
 crash.log
