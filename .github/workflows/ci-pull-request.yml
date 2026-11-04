@@ -41,6 +41,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.3.1
+        with:
+          version: v0.76.1
+          cache: true
       # IaC misconfiguration scan of the Terraform. Produces SARIF (uploaded
       # below) and does NOT fail the job here (exit-code 0) so both the config
       # and secret results can be collected before the gate step.
@@ -53,6 +58,7 @@ jobs:
           output: trivy-config.sarif
           exit-code: "0"
           severity: HIGH,CRITICAL
+          skip-setup-trivy: true
 
       - name: Upload IaC scan results to Security tab
         # Only upload when the scan actually produced the report. Guarding on
@@ -76,7 +82,7 @@ jobs:
           format: table
           exit-code: "0" # report-only; set to "1" to enforce
           severity: HIGH,CRITICAL
-
+          skip-setup-trivy: true
       # Gate 2 — secret detection in the working tree.
       # REPORT-ONLY for now (exit-code 0). To ENFORCE, change exit-code to "1".
       # A leaked secret is high-impact, so this is a strong candidate to enforce
@@ -90,6 +96,7 @@ jobs:
           format: table
           exit-code: "0" # report-only; set to "1" to enforce
           severity: HIGH,CRITICAL
+          skip-setup-trivy: true
 
   validate-and-plan:
     name: fmt, validate, plan (dev)
