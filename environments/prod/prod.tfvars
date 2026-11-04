@@ -18,19 +18,19 @@ enable_flow_logs   = true
 # EKS — production-grade nodes and scale.
 eks_cluster_version = "1.35"
 node_instance_types = ["t3.medium"]
-node_desired_size   = 3
-node_min_size       = 3
-node_max_size       = 6
+node_desired_size   = 1
+node_min_size       = 1
+node_max_size       = 3
 
-# Database — db.t3.medium, Multi-AZ, 100 GB, 30-day backups,
-# deletion protection enabled.
+# Database — db.t3.micro, Multi-AZ, 20 GB, 1-day backups,
+
 db_engine_version      = "8.4.11"
-db_instance_class      = "db.t3.medium"
-db_allocated_storage   = 30
+db_instance_class      = "db.t3.micro"
+db_allocated_storage   = 20
 db_multi_az            = true
-db_backup_retention    = 30
-db_deletion_protection = true
-db_skip_final_snapshot = false
+db_backup_retention    = 1
+db_deletion_protection = false
+db_skip_final_snapshot = true
 
 # ECR — immutable tags in prod for traceable, reproducible deploys.
 ecr_repository_names           = ["shopverse-frontend", "shopverse-backend"]

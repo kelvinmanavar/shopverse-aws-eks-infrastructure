@@ -81,15 +81,21 @@ data "aws_iam_policy_document" "prod_trust" {
       values   = [var.github_repository_id]
     }
 
-    # Exact immutable subject for the default branch. This both satisfies AWS's
-    # requirement to scope `sub` and pins prod to the default branch precisely.
+    # Exact immutable subject. The prod CD job runs with `environment: prod`,
+    # so GitHub mints the OIDC token with an environment-scoped subject
+    # (`...:environment:prod`) rather than a ref-scoped one. Pin to that exact
+    # subject: it both satisfies AWS's requirement to scope `sub` and ties this
+    # role to the protected `prod` GitHub Environment (whose own rules restrict
+    # deployment to the default branch and require reviewer approval).
     condition {
       test     = "StringEquals"
       variable = "${local.oidc_host}:sub"
-      values   = ["${local.immutable_sub_prefix}:ref:refs/heads/${var.default_branch}"]
+      values   = ["${local.immutable_sub_prefix}:environment:${var.prod_environment_name}"]
     }
 
-    # Default branch only (redundant with the exact `sub` above, kept explicit).
+    # Default branch only. With an environment-scoped `sub`, the `ref` claim is
+    # what actually pins prod to the default branch, so this is load-bearing
+    # (not redundant).
     condition {
       test     = "StringEquals"
       variable = "${local.oidc_host}:ref"
@@ -165,6 +171,7 @@ locals {
     "logs:*",
     "kms:CreateKey",
     "kms:CreateAlias",
+    "kms:UpdateAlias",
     "kms:DeleteAlias",
     "kms:ScheduleKeyDeletion",
     "kms:TagResource",
@@ -201,6 +208,10 @@ locals {
     "iam:UntagInstanceProfile",
     "iam:PassRole",
     "iam:CreateOpenIDConnectProvider",
+    "iam:DeleteOpenIDConnectProvider",
+    "iam:TagOpenIDConnectProvider",
+    "iam:UntagOpenIDConnectProvider",
+    "iam:UpdateOpenIDConnectProviderThumbprint",
     "iam:TagRole",
     "iam:UntagRole",
     "iam:TagPolicy",
