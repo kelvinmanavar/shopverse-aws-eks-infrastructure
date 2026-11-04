@@ -45,9 +45,8 @@ jobs:
       # below) and does NOT fail the job here (exit-code 0) so both the config
       # and secret results can be collected before the gate step.
       - name: Trivy IaC misconfig scan (SARIF)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          version: v0.76.1
           scan-type: config
           scan-ref: .
           format: sarif
@@ -70,9 +69,8 @@ jobs:
       # you can triage the baseline and add a .trivyignore for accepted items.
       # To ENFORCE (fail the PR on findings), change exit-code to "1".
       - name: Trivy IaC misconfig gate (report-only)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          version: v0.76.1 # avoid the 0.69.3 default_tags panic (see SARIF step)
           scan-type: config
           scan-ref: .
           format: table
@@ -84,9 +82,8 @@ jobs:
       # A leaked secret is high-impact, so this is a strong candidate to enforce
       # (exit-code "1") as soon as the baseline is confirmed clean.
       - name: Trivy secret scan gate (report-only)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          version: v0.76.1 # keep the Trivy binary consistent across steps
           scan-type: fs
           scan-ref: .
           scanners: secret
