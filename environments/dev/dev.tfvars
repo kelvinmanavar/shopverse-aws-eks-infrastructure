@@ -15,7 +15,7 @@ enable_flow_logs   = true
 
 # EKS — smaller nodes, minimal scale for dev.
 eks_cluster_version = "1.35"
-node_instance_types = ["t3.medium"]
+node_instance_types = ["t3.small"]
 node_desired_size   = 2
 node_min_size       = 2
 node_max_size       = 3
