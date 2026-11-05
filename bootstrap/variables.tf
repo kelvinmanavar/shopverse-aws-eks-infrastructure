@@ -47,6 +47,12 @@ variable "default_branch" {
   default     = "main"
 }
 
+variable "prod_environment_name" {
+  description = "Name of the GitHub Environment the prod CD job runs in (the `environment:` value in cd-deploy.yml). GitHub scopes the OIDC token subject as `...:environment:<name>`, so this must match the workflow exactly or the prod role trust policy will reject the assumption."
+  type        = string
+  default     = "prod"
+}
+
 variable "name_prefix" {
   description = "Base prefix for IAM resource names."
   type        = string
