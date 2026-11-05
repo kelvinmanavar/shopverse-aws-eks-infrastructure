@@ -192,6 +192,11 @@ locals {
     "secretsmanager:*",
     "iam:CreateRole",
     "iam:DeleteRole",
+    # Needed to update existing roles in place (e.g. trust-policy changes on
+    # the IRSA roles), not only create/delete them.
+    "iam:UpdateAssumeRolePolicy",
+    "iam:UpdateRole",
+    "iam:UpdateRoleDescription",
     "iam:AttachRolePolicy",
     "iam:DetachRolePolicy",
     "iam:PutRolePolicy",
