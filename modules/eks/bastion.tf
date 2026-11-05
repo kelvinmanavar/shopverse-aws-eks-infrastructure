@@ -27,7 +27,6 @@ resource "aws_iam_role" "bastion" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-bastion-role" })
 }
 
-# Grants Session Manager connectivity; no inbound ports required.
 resource "aws_iam_role_policy_attachment" "bastion_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.bastion.name
