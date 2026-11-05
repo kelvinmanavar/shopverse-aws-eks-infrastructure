@@ -17,7 +17,7 @@ enable_flow_logs   = true
 
 # EKS — production-grade nodes and scale.
 eks_cluster_version = "1.35"
-node_instance_types = ["t3.medium"]
+node_instance_types = ["t3.small"]
 node_desired_size   = 1
 node_min_size       = 1
 node_max_size       = 3
